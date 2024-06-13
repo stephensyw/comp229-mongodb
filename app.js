@@ -13,7 +13,7 @@ main().catch(err => console.log(err));
 async function main() {
   await mongoose.connect(config.mongoUri);
 
-  // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/test');` if your database has auth enabled
+  // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/Marketplace');` if your database has auth enabled
 }
 
 var indexRouter = require('./routes/index');
