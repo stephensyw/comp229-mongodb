@@ -1,10 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var productsRouter = require('./products');
 
-
-var usersRouter = require('./users');
-var authRouter = require('./auth');
-router.use('/users', usersRouter);
-router.use('/auth', authRouter);
+router.use('/products', productsRouter);
 
 module.exports = router;
