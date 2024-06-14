@@ -2,12 +2,31 @@ const Product = require('../models/product.model');
 
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
-    res.json(products);
+    // Get the name from the URL
+    const queryString = req.url.split('?')[1];
+    const urlParams = new URLSearchParams(queryString);
+    const urlName = urlParams.get('name');
+
+    // If urlName is present, search by name
+    if (urlName) {
+      const query = { name: { $regex: new RegExp(urlName, 'i') } };
+      const products = await Product.find(query);
+      if (products.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      res.json(products);
+    }
+    // If urlName is not present, retrieve all products
+    else {
+      const products = await Product.find();
+      res.json(products);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 exports.getProductById = async (req, res) => {
   try {
@@ -62,26 +81,6 @@ exports.deleteProductById = async (req, res) => {
     }
     await product.deleteOne();
     res.json({ message: 'Product deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-exports.getProductByIdWithName = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-    if (req.query.name) {
-      if (product.name.includes(req.query.name)) {
-        res.json(product);
-      } else {
-        res.status(404).json({ message: 'Product not found' });
-      }
-    } else {
-      res.json(product);
-    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
