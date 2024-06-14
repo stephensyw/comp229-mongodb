@@ -6,7 +6,6 @@ router
   .get('/', productsController.getProducts)
   //.get('/', productsController.getProductByName)
   .get('/:id', productsController.getProductById)
-  .get('/:product_id', productsController.getProductById)
   .post('/', productsController.createProduct)
   .put('/:id', productsController.updateProduct)
   .delete('/', productsController.deleteProducts)

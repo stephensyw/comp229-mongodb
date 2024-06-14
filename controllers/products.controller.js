@@ -46,7 +46,7 @@ exports.getProductById = async (req, res) => {
       if (!product) {
         return res.status(404).json({ message: 'Product not found' });
       }
-      return res.json(product);
+      res.json(product);
     }
 
     // If the input is not a valid ObjectId, search by product_id
@@ -55,7 +55,7 @@ exports.getProductById = async (req, res) => {
       if (!product) {
         return res.status(404).json({ message: 'Product not found' });
       }
-      return res.json(product);
+      res.json(product);
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -74,13 +74,36 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({ product_id: req.params.product_id });
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    const { id } = req.params;
+    let idType;
+
+    // Check if the input is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      idType = 'objectId';
+    } else {
+      idType = 'productId';
     }
+
+    let product;
+
+    // Check if the input is a valid ObjectId
+    if (idType === 'objectId') {
+      product = await Product.findById(id);
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+    } else {
+      // Check if the input is a valid productId
+      product = await Product.findOne({ product_id: id });
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+    }
+
+    // Update the product
     Object.assign(product, req.body);
     const updatedProduct = await product.save();
-    res.json(updatedProduct);
+    res.json({ product: updatedProduct, idType });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -97,14 +120,37 @@ exports.deleteProducts = async (req, res) => {
 
 exports.deleteProductById = async (req, res) => {
   try {
-    const product = await Product.findOne({ product_id: req.params.product_id });
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    const { id } = req.params;
+    let idType;
+
+    // Check if the input is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      idType = 'objectId';
+    } else {
+      idType = 'productId';
     }
-    await product.deleteOne();
+
+    let product;
+
+    // Delete the product based on the idType
+    if (idType === 'objectId') {
+      product = await Product.findById(id);
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      await product.deleteOne();
+    } else if (idType === 'productId') {
+      product = await Product.findOne({ product_id: id });
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      await product.deleteOne();
+    } else {
+      return res.status(400).json({ message: 'Invalid product ID format' });
+    }
+
     res.json({ message: 'Product deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
