@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Product = require('../models/product.model');
 
 exports.getProducts = async (req, res) => {
@@ -30,11 +31,32 @@ exports.getProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    const { id } = req.params;
+    let idType;
+
+    if (mongoose.Types.ObjectId.isValid(id)){
+      idType = 'objectId'
+    }else{
+      idType = 'productId'
     }
-    res.json(product);
+
+    // Check if the input is a valid ObjectId
+    if (idType === 'objectId') {
+      const product = await Product.findById(id);
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      return res.json(product);
+    }
+
+    // If the input is not a valid ObjectId, search by product_id
+    if(idType === 'productId'){
+      const product = await Product.findOne({ product_id: id });
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      return res.json(product);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -52,7 +74,7 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ product_id: req.params.product_id });
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -75,7 +97,7 @@ exports.deleteProducts = async (req, res) => {
 
 exports.deleteProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ product_id: req.params.product_id });
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
